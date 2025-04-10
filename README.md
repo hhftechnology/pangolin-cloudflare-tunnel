@@ -31,9 +31,12 @@ This creates a powerful combination where you can use Pangolin for secure local 
 | CLOUDFLARE_TUNNEL_ID     | String | The ID of your cloudlfare tunnel                             |
 | CLOUDFLARE_ZONE_ID       | String | The cloudflare zone ID of your site.                         |
 | DOMAIN_NAME              | String | The domain name used for these tunnels                       |
-| TRAEFIK_API_ENDPOINT     | String | The HTTP URI to Traefik's API (example: http://pangolin:8080) |
-| TRAEFIK_SERVICE_ENDPOINT | String | The HTTP URI to Traefik's web entrypoint                     |
-| TRAEFIK_ENTRYPOINT       | String | Optional. Only target routes registered to these entrypoints |
+| TRAEFIK_API_ENDPOINT     | String | The HTTP URI to Traefik's API ( http://traefik:8080) |
+| TRAEFIK_SERVICE_ENDPOINT | String | The HTTP URI to Traefik's web entrypoint (https://traefik:443)                     |
+| TRAEFIK_ENTRYPOINT       | String | Imp (web,websecure) |
+| POLL_INTERVAL       | String | Imp (10s) |
+| SKIP_TLS_ROUTES       | String | Imp (false) Include TLS-enabled routes |
+| LOG_LEVEL       | String | Imp (debug) |
 
 ### Cloudflare Permissions
 
@@ -77,7 +80,7 @@ services:
       timeout: "3s"
       retries: 5
     networks:
-      - pangolin_network
+      - pangolin_network 
 
   traefik:
     image: traefik:v3.3.3
@@ -93,23 +96,23 @@ services:
     command:
       - --configFile=/etc/traefik/traefik_config.yml
     environment:
-      - CLOUDFLARE_DNS_API_TOKEN=FwD_HeITWZFIvnVICFwBwge7zetZqt9sm9FvS9iy
+      - CLOUDFLARE_DNS_API_TOKEN=MDVq5cqxxqwiPe3lOFS9jW5Q10Xs9GOrOUB5
     volumes:
       - ./config/traefik:/etc/traefik:ro # Volume to store the Traefik configuration
       - ./config/letsencrypt:/letsencrypt # Volume to store the Let's Encrypt certificates
       - ./config/traefik/logs:/var/log/traefik # Volume to store Traefik logs
     networks:
-      - pangolin_network 
+      - pangolin_network      
 
   cloudflared:
-    image: cloudflare/cloudflared:latest
+    image: cloudflare/cloudflared:2025.4.0
     container_name: cloudflared
+    restart: unless-stopped
     command:
       - tunnel
       - --no-autoupdate
       - run
-      - --token=${CLOUDFLARED_TOKEN}
-    restart: unless-stopped
+      - --token=UFCDLJePHRt1nTrMAKQ9RfeUw1iUyMqXcscMLiMygHdELmrxvzHwe74Jn2UiSteheLtPRD4sLO59alBrk3TdrCcbutPgCeV0JxWMrBkMd8G025qkQJoTONt7xZpIbAS0
     networks:
       - pangolin_network
     depends_on:
@@ -118,20 +121,28 @@ services:
   traefik-cloudflare-tunnel:
     image: "hhftechnology/pangolin-cloudflare-tunnel:latest"
     container_name: pangolin-cloudflare-tunnel
-    environment:
-      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
-      - CLOUDFLARE_ACCOUNT_ID=${CLOUDFLARE_ACCOUNT_ID}
-      - CLOUDFLARE_TUNNEL_ID=${CLOUDFLARE_TUNNEL_ID}
-      - CLOUDFLARE_ZONE_ID=${CLOUDFLARE_ZONE_ID}
-      - TRAEFIK_SERVICE_ENDPOINT=http://traefik:80
-      - TRAEFIK_API_ENDPOINT=http://traefik:8080
-      - TRAEFIK_ENTRYPOINT=web
     restart: unless-stopped
+    environment:
+      - CLOUDFLARE_API_TOKEN=MDVq5cqxxqwiPe3lOFS9jW5Q10Xs9GOrOUB5
+      - CLOUDFLARE_ACCOUNT_ID=xfzFks0EuhA0wTAfwpUmTSOFuNboyM7Pzhz
+      - CLOUDFLARE_TUNNEL_ID=z8a6c73b-22a4-5ghu-ad91-f1acce880d1f
+      - CLOUDFLARE_ZONE_ID=RSPqQ9eaySaMSmISLupfeN9eAhXZQ35Ckwj0wgU
+      - TRAEFIK_SERVICE_ENDPOINT=https://traefik:443
+      - TRAEFIK_API_ENDPOINT=http://traefik:8080
+      - TRAEFIK_ENTRYPOINTS=web,websecure
+      - POLL_INTERVAL=10s  # Added to configure polling interval
+      - SKIP_TLS_ROUTES=false  # Include TLS-enabled routes
+      - LOG_LEVEL=debug
     networks:
-      - pangolin
+      - pangolin_network
     depends_on:
       - traefik
-      - cloudflared   
+      - cloudflared
+   
+networks:
+  pangolin_network:
+    driver: bridge
+    name: pangolin_network  
 ```
 
 4. Restart your Pangolin stack:
