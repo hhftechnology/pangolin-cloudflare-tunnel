@@ -1,0 +1,4 @@
+.envrc
+example/.env
+
+dist/
