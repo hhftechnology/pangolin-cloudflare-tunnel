@@ -1,3 +1,5 @@
+[![Discuss on the HHF forum](https://img.shields.io/badge/discuss-forum.hhf.technology-E65100?logo=discourse&logoColor=white)](https://forum.hhf.technology/c/pangolin-newt-tools/pangolin-cloudflare-tunnel)
+
 <div align="center">
     <h1>Pangolin-Cloudflare-Tunnel</h1>
     <p>A bridge between Traefik and Cloudflare Zero-Trust tunnels that enables Pangolin users to leverage Cloudflare's global network.</p>
